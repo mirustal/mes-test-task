@@ -1,0 +1,7 @@
+modelog: debug
+db:
+  host: "localhost"
+  port: 5432
+  user: "youruser"
+  password: "yourpassword"
+  name: "yourdbname"

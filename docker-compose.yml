@@ -1,0 +1,143 @@
+version: "3.8"
+services:
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3.9.2
+    container_name: zookeeper-cm
+    hostname: zookeeper
+    ports:
+      - 22181:2181
+    networks:
+      - app-tier
+    volumes:
+      - ./data/zookeeper:/bitnami/zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_MAX_SESSION_TIMEOUT=4000
+    restart: unless-stopped
+
+  kafka-1:
+    image: docker.io/confluentinc/cp-kafka:7.4.4
+    container_name: kafka-1-cm
+    hostname: kafka-1
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+      - 19092:19092
+    networks:
+      - app-tier
+    volumes:
+      - ./data/kafka-1:/var/lib/kafka/data
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_CFG_LISTENERS: 'CONTAINER_LISTENER://:9091,CONTAINER_LISTENER://:29091' 
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: CONTAINER_LISTENER://kafka-1:9092,HOST_LISTENER://localhost:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTAINER_LISTENER:PLAINTEXT,HOST_LISTENER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: CONTAINER_LISTENER
+    restart: unless-stopped
+
+  ui:
+    image: docker.io/provectuslabs/kafka-ui:v0.7.2
+    container_name: kafka-ui-cm
+    depends_on:
+      - zookeeper
+      - kafka-1
+    ports:
+      - 8087:8080
+    networks:
+      - app-tier
+    environment:
+      KAFKA_CLUSTERS_0_NAME: kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    restart: unless-stopped
+
+  postgres:
+    container_name: postgres_container
+    image: postgres:14.8-alpine3.18
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=50"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "effective_cache_size=4GB"
+      - "-c"
+      - "work_mem=16MB"
+      - "-c"
+      - "maintenance_work_mem=512MB"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "temp_file_limit=10GB"
+      - "-c"
+      - "log_min_duration_statement=200ms"
+      - "-c"
+      - "idle_in_transaction_session_timeout=10s"
+      - "-c"
+      - "lock_timeout=1s"
+      - "-c"
+      - "statement_timeout=60s"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements"
+      - "-c"
+      - "pg_stat_statements.max=10000"
+      - "-c"
+      - "pg_stat_statements.track=all"
+    environment:
+      POSTGRES_DB: "messagio"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ../2. Init Database:/docker-entrypoint-initdb.d
+      - messagio-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d messagio"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
+    networks:
+      - app-tier
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4:8.10
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@mail.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    networks:
+      - app-tier
+
+networks:
+  app-tier:
+    driver: bridge
+
+volumes:
+  messagio-data:
+  pgadmin-data:
