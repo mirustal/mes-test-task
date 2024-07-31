@@ -9,20 +9,34 @@ import (
 	"kafka-app/internal/domain"
 )
 
+// GetRequest представляет структуру запроса для получения сообщений
 type GetRequest struct {
-	ID string `json:"id"`
-	Limit int `json:"limit"`
+	ID    string `json:"id"`
+	Limit int    `json:"limit"`
 }
 
+// GetResponse представляет структуру ответа для получения сообщений
 type GetResponse struct {
-	Err int `json:"error"`
-	Messages []domain.Message `json:"id"`
+	Err      int              `json:"error"`
+	Messages []domain.Message `json:"messages"`
 }
 
+// UserGetter описывает интерфейс для получения пользователей
 type UserGetter interface {
 	GetUser(ctx context.Context, name string, limit int) ([]domain.Message, error)
 }
 
+// NewGetter создает новый обработчик для получения сообщений
+// @Summary Get messages
+// @Description Get messages by user ID
+// @Tags messages
+// @Accept json
+// @Produce json
+// @Param request body GetRequest true "Get Request"
+// @Success 200 {object} GetResponse
+// @Failure 500 {object} GetResponse
+// @Failure 404 {object} GetResponse
+// @Router /get [post]
 func NewGetter(userGetter UserGetter) http.HandlerFunc{
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req GetRequest

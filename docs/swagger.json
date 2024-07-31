@@ -1,0 +1,129 @@
+openapi: 3.0.3
+info:
+  title: Kafka App API
+  description: API для управления сообщениями и их отправки в Kafka.
+  version: 1.0.0
+paths:
+  /get:
+    post:
+      summary: Получить сообщения
+      description: Получить сообщения по ID пользователя.
+      tags:
+        - messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: ID пользователя
+                limit:
+                  type: integer
+                  description: Максимальное количество сообщений для получения
+              required:
+                - id
+                - limit
+      responses:
+        '200':
+          description: Сообщения успешно получены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  err:
+                    type: integer
+                    description: Код ошибки (если есть)
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: ID сообщения
+                        text:
+                          type: string
+                          description: Текст сообщения
+        '404':
+          description: Сообщения не найдены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  err:
+                    type: integer
+                    description: Код ошибки
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  err:
+                    type: integer
+                    description: Код ошибки
+  /set:
+    post:
+      summary: Установить сообщение
+      description: Установить сообщение по ID.
+      tags:
+        - messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: ID сообщения
+                text:
+                  type: string
+                  description: Текст сообщения
+              required:
+                - id
+                - text
+      responses:
+        '200':
+          description: Сообщение успешно установлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: ID сообщения
+                  message:
+                    type: string
+                    description: Сообщение об успешной установке
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: integer
+                    description: Код ошибки
+                  message:
+                    type: string
+                    description: Сообщение об ошибке
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: integer
+                    description: Код ошибки

@@ -1,5 +1,17 @@
 version: "3.8"
 services:
+
+  app:
+    build: ./
+    container_name: app-instance
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - kafka-1
+    networks:
+      - app-tier
+      
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.9.2
     container_name: zookeeper-cm
