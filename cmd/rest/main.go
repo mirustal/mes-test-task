@@ -26,10 +26,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	broker := cfg.Kafka.Host + ":" + cfg.Kafka.Port
-	kafka, err := producer.NewProducer(broker)
+	kafka, err := producer.NewProducer(cfg.Kafka)
 
 	r := routes.InitRoutes(rep, kafka)
-	log.Println("Start serve in port %v", cfg.ServerPort)
+	log.Println("Start serve in port ", cfg.ServerPort)
 	log.Fatal(http.ListenAndServe(":" + cfg.ServerPort, r))
 }

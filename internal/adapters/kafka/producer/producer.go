@@ -3,49 +3,48 @@ package producer
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/IBM/sarama"
+
+	"kafka-app/pkg/config"
 )
 
 type Producer struct {
-	p sarama.AsyncProducer
+	p   sarama.AsyncProducer
+	cfg *config.Kafka
 }
 
-func NewProducer(broker string) (*Producer, error) {
+func NewProducer(cfg *config.Kafka) (*Producer, error) {
+	broker := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	producer, err := sarama.NewAsyncProducer([]string{broker}, sarama.NewConfig())
 	if err != nil {
 		return nil, err
 	}
 	return &Producer{
-		p: producer,
+		p:   producer,
+		cfg: cfg,
 	}, nil
 }
 
 type Message struct {
-	Id int `json:"id"`
+	Text string `json:"id"`
 }
 
-func (p *Producer) ProduceMessage(topic string, text string) {
-	start := time.Now()
-	for i := 0; ; i++ {
-		msg := Message{i}
-		msgBytes, err := json.Marshal(msg)
-		if err != nil {
-			continue
-		}
-		select {
-		case p.p.Input() <- &sarama.ProducerMessage{
-			Topic: topic,
-			Value: sarama.ByteEncoder(msgBytes),
-		}:
-			if i%5000 == 0 {
-				fmt.Printf("produced %d messages with speed %.2f/s\n", i, float64(i)/time.Since(start).Seconds())
-			}
+func (p *Producer) ProduceMessage(text string) error {
+	msg := Message{text}
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("marshal json fail")
+	}
 
-		case err := <-p.p.Errors():
-			fmt.Printf("Failed to send message to kafka, err: %s, msg: %s\n", err, msg.Id)
-		}
+	select {
+	case p.p.Input() <- &sarama.ProducerMessage{
+		Topic: p.cfg.Topic,
+		Value: sarama.ByteEncoder(msgBytes),
+	}:
+		return nil
+	case err := <-p.p.Errors():
+		return fmt.Errorf("Failed to send message to kafka, err: %s, msg: %s\n", err, msg.Text)
 	}
 }
 

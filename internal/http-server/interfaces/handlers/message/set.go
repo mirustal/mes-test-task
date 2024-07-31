@@ -24,7 +24,7 @@ type messageSetter interface {
 }
 
 type Producer interface {
-	ProduceMessage(topic string, text string)
+	ProduceMessage(text string) error
 }
 
 func NewSetter(userGetter messageSetter, produce Producer) http.HandlerFunc {
@@ -42,7 +42,11 @@ func NewSetter(userGetter messageSetter, produce Producer) http.HandlerFunc {
 			return
 		}
 
-		produce.ProduceMessage()
+		err = produce.ProduceMessage(req.ID)
+		if err != nil {
+			log.Println("Failed to send in kafka %v", err)
+			http.Error(w, "Failed to send in kafka %v", http.StatusInternalServerError)
+		}
 
 		res := SetResponse{
 			ID:      req.ID,
