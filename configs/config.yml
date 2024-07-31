@@ -1,0 +1,16 @@
+modelog: debug
+serverport: 8081
+db:
+  host: "localhost"
+  port: 5432
+  user: "admin"
+  password: "admin"
+  name: "messagio"
+  
+kafka:
+  mode: "produce"
+  host: "localhost"
+  port: 19092
+  topic: "messagio-topic"
+
+
