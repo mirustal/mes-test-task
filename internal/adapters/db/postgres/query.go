@@ -15,13 +15,14 @@ func (pg *PostgresMessageRep) Ping(ctx context.Context) error {
 	return pg.db.Ping(ctx)
 }
 
-func (pg *PostgresMessageRep) Insert(ctx context.Context, text string) error {
-	query := `INSERT INTO message (text) VALUES ($1)`
-	_, err := pg.db.Exec(ctx, query, text)
+func (pg *PostgresMessageRep) Insert(ctx context.Context, text string) (string, error) {
+	query := `INSERT INTO message (text) VALUES ($1) RETURNING id`
+	var id string
+	err := pg.db.QueryRow(ctx, query, text).Scan(&id)
 	if err != nil {
-		return fmt.Errorf("unable to insert row: %w", err)
+		return "", fmt.Errorf("unable to insert row: %w", err)
 	}
-	return nil
+	return id, nil
 }
 
 func (pg *PostgresMessageRep) GetUser(ctx context.Context, name string, limit int) ([]domain.Message, error) {

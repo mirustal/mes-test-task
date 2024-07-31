@@ -60,12 +60,23 @@ func (pg *PostgresMessageRep) RunMigrations(ctx context.Context) error {
 	createTableQuery := `
 	CREATE TABLE IF NOT EXISTS message (
 		id SERIAL PRIMARY KEY,
-		text TEXT NOT NULL
+		text TEXT NOT NULL,
+		read BOOLEAN NOT NULL DEFAULT false
 	);
 	`
 	_, err := pg.db.Exec(ctx, createTableQuery)
 	if err != nil {
 		return fmt.Errorf("unable to run migrations: %w", err)
+	}
+	return nil
+}
+
+
+func (pg *PostgresMessageRep) MarkAsRead(ctx context.Context, id string) error {
+	query := `UPDATE message SET read = true WHERE id = $1`
+	_, err := pg.db.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("unable to mark message as read: %w", err)
 	}
 	return nil
 }

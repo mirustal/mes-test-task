@@ -17,7 +17,6 @@ func NewSyncConsumerGroupHandler(cb func([]byte) error) ConsumerGroupHandler {
 }
 
 func (h *syncConsumerGroupHandler) Setup(sarama.ConsumerGroupSession) error {
-	// Mark the consumer as ready
 	close(h.ready)
 	return nil
 }

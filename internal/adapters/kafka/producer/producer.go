@@ -27,11 +27,12 @@ func NewProducer(cfg *config.Kafka) (*Producer, error) {
 }
 
 type Message struct {
-	Text string `json:"id"`
+	ID string `json:"id"`
+	Text string `json:"text"`
 }
 
-func (p *Producer) ProduceMessage(text string) error {
-	msg := Message{text}
+func (p *Producer) ProduceMessage(id string, text string) error {
+	msg := Message{ID: id, Text: text}
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("marshal json fail")

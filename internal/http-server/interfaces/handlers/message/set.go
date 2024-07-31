@@ -11,6 +11,7 @@ import (
 
 type SetRequest struct {
 	ID    string `json:"id"`
+	Text  string `json:"text"`
 }
 
 type SetResponse struct {
@@ -20,11 +21,11 @@ type SetResponse struct {
 }
 
 type messageSetter interface {
-	Insert(ctx context.Context, text string) error
+	Insert(ctx context.Context, text string) (string, error)
 }
 
 type Producer interface {
-	ProduceMessage(text string) error
+	ProduceMessage(id, text string) error
 }
 
 func NewSetter(userGetter messageSetter, produce Producer) http.HandlerFunc {
@@ -35,17 +36,18 @@ func NewSetter(userGetter messageSetter, produce Producer) http.HandlerFunc {
 			return
 		}
 
-		err := userGetter.Insert(context.Background(), req.ID)
+		id, err := userGetter.Insert(context.Background(), req.Text)
 		if err != nil {
-			log.Println("Faled to insert data %v", err)
+			log.Printf("Failed to insert data: %v", err)
 			http.Error(w, "Failed to insert data", http.StatusInternalServerError)
 			return
 		}
 
-		err = produce.ProduceMessage(req.ID)
+		err = produce.ProduceMessage(id, req.Text)
 		if err != nil {
-			log.Println("Failed to send in kafka %v", err)
-			http.Error(w, "Failed to send in kafka %v", http.StatusInternalServerError)
+			log.Printf("Failed to send to Kafka: %v", err)
+			http.Error(w, "Failed to send to Kafka", http.StatusInternalServerError)
+			return
 		}
 
 		res := SetResponse{
