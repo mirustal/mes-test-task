@@ -24,7 +24,7 @@ func main() {
 
 
 	logger.LogInit(cfg.ModeLog)
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 20)
 
 	rep, err := postgres.NewMR(ctx, cfg.DB)
 	if err != nil {

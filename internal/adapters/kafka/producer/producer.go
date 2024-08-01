@@ -18,7 +18,7 @@ func NewProducer(cfg *config.Kafka) (*Producer, error) {
 	broker := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	producer, err := sarama.NewAsyncProducer([]string{broker}, sarama.NewConfig())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fail create AsyncProducer %v", err)
 	}
 	return &Producer{
 		p:   producer,
