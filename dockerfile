@@ -10,11 +10,8 @@ FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/cmd/rest/main .
-
-COPY configs/config.yml .
-
-EXPOSE 8080
-
+COPY --from=builder /app/main .
+COPY --from=builder /app/configs ./configs
+EXPOSE 8081
 
 CMD ["./main"]

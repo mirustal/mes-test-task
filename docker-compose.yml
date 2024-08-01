@@ -5,13 +5,13 @@ services:
     build: ./
     container_name: app-instance
     ports:
-      - "8080:8080"
+      - "8081:8081"
     depends_on:
       - postgres
       - kafka-1
     networks:
       - app-tier
-      
+
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.9.2
     container_name: zookeeper-cm
@@ -47,7 +47,7 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: CONTAINER_LISTENER://kafka-1:9092,HOST_LISTENER://localhost:19092
+      KAFKA_ADVERTISED_LISTENERS: CONTAINER_LISTENER://kafka-1:9092,HOST_LISTENER://kafka-1:19092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTAINER_LISTENER:PLAINTEXT,HOST_LISTENER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: CONTAINER_LISTENER
     restart: unless-stopped
@@ -69,7 +69,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    container_name: postgres_container
+    container_name: postgres
     image: postgres:14.8-alpine3.18
     command:
       - "postgres"
@@ -111,12 +111,6 @@ services:
       - messagio-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d messagio"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     restart: unless-stopped
     deploy:
       resources:
