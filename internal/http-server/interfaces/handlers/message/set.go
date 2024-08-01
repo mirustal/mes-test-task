@@ -31,7 +31,6 @@ type messageSetter interface {
 	Insert(ctx context.Context, text string) (string, error)
 }
 
-
 type Producer interface {
 	ProduceMessage(id, text string) error
 }
