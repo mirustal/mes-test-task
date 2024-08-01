@@ -2,7 +2,7 @@ modelog: debug
 serverport: 8081
 
 db:
-  host: "postgres"
+  host: "0.0.0.0"
   port: 5432
   user: "admin"
   password: "admin"
@@ -10,6 +10,6 @@ db:
 
 kafka:
   mode: "produce"
-  host: "kafka-1"
+  host: "0.0.0.0"
   port: 9092
   topic: "messagio-topic"
