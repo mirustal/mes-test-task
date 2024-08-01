@@ -25,8 +25,8 @@ func (pg *PostgresMessageRep) Insert(ctx context.Context, text string) (string, 
 	return id, nil
 }
 
-func (pg *PostgresMessageRep) GetUser(ctx context.Context, name string, limit int) ([]domain.Message, error) {
-	query := `SELECT id, text FROM message LIMIT $1`
+func (pg *PostgresMessageRep) GetUser(ctx context.Context, id string, limit int) ([]domain.Message, error) {
+	query := `SELECT id, text, read FROM message LIMIT $1`
 	rows, err := pg.db.Query(ctx, query, limit)
 	if err != nil {
 		return nil, fmt.Errorf("fail to query users: %w", err)
@@ -36,7 +36,7 @@ func (pg *PostgresMessageRep) GetUser(ctx context.Context, name string, limit in
 	var messages []domain.Message
 	for rows.Next() {
 		var msg domain.Message
-		if err := rows.Scan(&msg.ID, &msg.Text); err != nil {
+		if err := rows.Scan(&msg.ID, &msg.Text, &msg.Read); err != nil {
 			return nil, fmt.Errorf("fail to scan row: %w", err)
 		}
 		messages = append(messages, msg)

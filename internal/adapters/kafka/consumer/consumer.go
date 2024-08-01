@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/IBM/sarama"
 
-	"kafka-app/internal/adapters/db/postgres"
 	"kafka-app/internal/adapters/kafka/producer"
 	"kafka-app/pkg/config"
 )
@@ -24,17 +22,12 @@ type ConsumerGroup struct {
 	cg sarama.ConsumerGroup
 }
 
-type markDB interface {
-	MarkAsRead(context.Context, string) error
-}
-
 func NewConsumerGroup(broker string, topics []string, group string, handler ConsumerGroupHandler) (*ConsumerGroup, error) {
 	ctx := context.Background()
 	cfg := sarama.NewConfig()
-	// cfg.Consumer.Offsets.Initial = sarama.OffsetOldest
 	cfg.Consumer.Offsets.AutoCommit.Enable = true
 	cfg.Consumer.Offsets.AutoCommit.Interval = 5 * time.Second
-	
+
 	client, err := sarama.NewConsumerGroup([]string{broker}, group, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create consumer group: %w", err)
@@ -58,7 +51,7 @@ func NewConsumerGroup(broker string, topics []string, group string, handler Cons
 		}
 	}()
 
-	handler.WaitReady() 
+	handler.WaitReady()
 
 	return &ConsumerGroup{
 		cg: client,
@@ -78,19 +71,12 @@ func decodeMessage(data []byte) (*producer.Message, error) {
 	return &msg, nil
 }
 
-func StartSyncConsumer(cfg *config.Kafka, db *postgres.PostgresMessageRep) (*ConsumerGroup, error) {
+func StartSyncConsumer(cfg *config.Kafka) (*ConsumerGroup, error) {
 	handler := NewSyncConsumerGroupHandler(func(data []byte) error {
 		msg, err := decodeMessage(data)
 		if err != nil {
 			return fmt.Errorf("failed to decode message: %w", err)
 		}
-		go func(id string) { 
-			time.Sleep(2 * time.Second)
-			err := db.MarkAsRead(context.Background(), id)
-			if err != nil {
-				log.Printf("Failed to mark message as read: %v", err)
-			}
-		}(msg.ID)
 
 		fmt.Printf("Consumed message: %v\n", msg)
 		return nil
