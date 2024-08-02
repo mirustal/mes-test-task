@@ -1,9 +1,13 @@
 package routes
 
+
 import (
 	"net/http"
 
-	"kafka-app/internal/http-server/interfaces/handlers"
+	"kafka-app/internal/adapters/db/postgres"
+	"kafka-app/internal/adapters/kafka/producer"
+	"kafka-app/internal/http-server/interfaces/handlers/docs"
+	"kafka-app/internal/http-server/interfaces/handlers/message"
 	"kafka-app/internal/http-server/interfaces/middlewares"
 )
 
@@ -11,13 +15,18 @@ type Handler struct {
 	handler *http.ServeMux
 }
 
-func InitRoutes() http.Handler {
+func InitRoutes(db *postgres.PostgresMessageRep, producer *producer.Producer) http.Handler {
 	mux := http.NewServeMux()
-	
-	mux.HandleFunc("/get", handlers.GetUserHandler)
-	mux.HandleFunc("/set", handlers.SetMessageHandler)
 
-	return middlewares.LoggingRequest(mux)
+	mux.HandleFunc("/get", message.NewGetter(db))
+	mux.HandleFunc("/set", message.NewSetter(db, producer))
+	// mux.HandleFunc("/read", message.NewMark(db, consumer))
+
+	mux.HandleFunc("/swagger", docs.SwaggerHandler)
+
+
+	handler := middlewares.EnableCORS(mux)
+	handler = middlewares.LoggingRequest(handler)
+
+	return handler
 }
-
-

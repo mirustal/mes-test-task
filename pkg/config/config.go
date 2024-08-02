@@ -15,19 +15,26 @@ type DB struct {
 	Name     string `yaml:"name"`
 }
 
-type Config struct  {
-	ModeLog string `yaml:"modelog"`
-	DB      *DB     `yaml:"db"`
+type Kafka struct {
+	Mode  string `yaml:"mode"`
+	Host  string `yaml:"host"`
+	Port  int    `yaml:"port"`
+	Topic string `yaml:"topic"`
 }
 
-
+type Config struct {
+	ModeLog    string `yaml:"modelog"`
+	ServerPort string `yaml:"serverport"`
+	DB         *DB    `yaml:"db"`
+	Kafka	*Kafka 	`yaml:"kafka"`
+}
 
 func LoadConfig(fileName, fileType string) (*Config, error) {
 	var cfg *Config
 	v := viper.New()
 	v.SetConfigType(fileType)
 	v.SetConfigName(fileName)
-	v.AddConfigPath(".")
+	v.AddConfigPath("./configs")
 	v.AutomaticEnv()
 
 	if err := v.ReadInConfig(); err != nil {
