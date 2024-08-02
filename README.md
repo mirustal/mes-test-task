@@ -24,12 +24,12 @@
     ```bash
     docker-compose up -d
     ```
+**Документация:** [Swagger](http://http://176.109.107.236/:8081/swagger/)
 
 ## **Пример работы:**
 
 ![record](https://github.com/user-attachments/assets/08ebfb53-d2ac-48fc-8bd7-d13259d42676)
 
-**Документация:** [Swagger](http://ip:8081/swagger/)
 
 ## **Доступ к API:**
 
