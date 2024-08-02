@@ -3,6 +3,15 @@ Set запрос отправляет сообщение на сервер, се
 
 На сервере крутится второй сервис где consumer кафки обрабатывает входящие сообщение и помечает его в базе данных как прочитанное.
 
+тестировалс на MacOS|arm
+Локальный запуск: 
+```
+git clone https://github.com/mirustal/mes-test-task.git
+cd ./mes-test-task
+docker-compose up -d
+```
+
+
 Пример работы:
 
 ![record](https://github.com/user-attachments/assets/08ebfb53-d2ac-48fc-8bd7-d13259d42676)
